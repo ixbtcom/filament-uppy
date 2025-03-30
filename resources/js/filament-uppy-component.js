@@ -54,6 +54,7 @@ class InternalState {
         this.length = 0;
         this.inProgress = 0;
         this.errors = 0;
+        this.maxFiles = 0;
     }
 
     empty() {
@@ -66,6 +67,10 @@ class InternalState {
 
     done() {
         return this.errors == 0 && this.inProgress == 0;
+    }
+    
+    maxReached() {
+        return this.maxFiles > 0 && this.length >= this.maxFiles;
     }
 
     get(id) {
@@ -152,6 +157,23 @@ window.fileUploaderComponent = function fileUploaderComponent({
             autoProceed: true,
             allowMultipleUploads: true,
             restrictions,
+            showProgressDetails: true,
+            locale: {
+                strings: {
+                    dropPasteFiles: 'Перетащите файлы сюда или выберите %{browseFiles}',
+                    browseFiles: 'файлы для загрузки',
+                    uploadFailed: 'Ошибка загрузки',
+                    youCanOnlyUploadX: {
+                        0: 'Вы можете загрузить только %{smart_count} файл',
+                        1: 'Вы можете загрузить только %{smart_count} файла',
+                        2: 'Вы можете загрузить только %{smart_count} файлов',
+                    },
+                    youCanOnlyUploadFileTypes: 'Вы можете загрузить только: %{types}',
+                    exceedsSize: 'Файл %{file} превышает максимально допустимый размер %{size}',
+                    noFilesFound: 'У вас нет файлов для загрузки',
+                    noMoreFilesAllowed: 'Больше файлов загрузить нельзя'
+                }
+            }
         }),
 
         busy: false,
@@ -173,6 +195,11 @@ window.fileUploaderComponent = function fileUploaderComponent({
                 e.preventDefault();
                 e.returnValue = 'Are you sure you want to leave? Uploads in progress will be cancelled.';
             });
+            
+            // Проверяем ограничения на количество файлов
+            if (restrictions && restrictions.maxNumberOfFiles) {
+                this.internalState.maxFiles = restrictions.maxNumberOfFiles;
+            }
 
             this.initUppy();
         },

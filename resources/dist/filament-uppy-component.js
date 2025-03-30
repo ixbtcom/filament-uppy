@@ -6202,6 +6202,7 @@ Uppy plugins must have unique \`id\` options.`;
       this.length = 0;
       this.inProgress = 0;
       this.errors = 0;
+      this.maxFiles = 0;
     }
     empty() {
       return this.length == 0;
@@ -6211,6 +6212,9 @@ Uppy plugins must have unique \`id\` options.`;
     }
     done() {
       return this.errors == 0 && this.inProgress == 0;
+    }
+    maxReached() {
+      return this.maxFiles > 0 && this.length >= this.maxFiles;
     }
     get(id11) {
       return this.files[id11];
@@ -6273,7 +6277,24 @@ Uppy plugins must have unique \`id\` options.`;
       uppy: new Uppy_default({
         autoProceed: true,
         allowMultipleUploads: true,
-        restrictions
+        restrictions,
+        showProgressDetails: true,
+        locale: {
+          strings: {
+            dropPasteFiles: "\u041F\u0435\u0440\u0435\u0442\u0430\u0449\u0438\u0442\u0435 \u0444\u0430\u0439\u043B\u044B \u0441\u044E\u0434\u0430 \u0438\u043B\u0438 \u0432\u044B\u0431\u0435\u0440\u0438\u0442\u0435 %{browseFiles}",
+            browseFiles: "\u0444\u0430\u0439\u043B\u044B \u0434\u043B\u044F \u0437\u0430\u0433\u0440\u0443\u0437\u043A\u0438",
+            uploadFailed: "\u041E\u0448\u0438\u0431\u043A\u0430 \u0437\u0430\u0433\u0440\u0443\u0437\u043A\u0438",
+            youCanOnlyUploadX: {
+              0: "\u0412\u044B \u043C\u043E\u0436\u0435\u0442\u0435 \u0437\u0430\u0433\u0440\u0443\u0437\u0438\u0442\u044C \u0442\u043E\u043B\u044C\u043A\u043E %{smart_count} \u0444\u0430\u0439\u043B",
+              1: "\u0412\u044B \u043C\u043E\u0436\u0435\u0442\u0435 \u0437\u0430\u0433\u0440\u0443\u0437\u0438\u0442\u044C \u0442\u043E\u043B\u044C\u043A\u043E %{smart_count} \u0444\u0430\u0439\u043B\u0430",
+              2: "\u0412\u044B \u043C\u043E\u0436\u0435\u0442\u0435 \u0437\u0430\u0433\u0440\u0443\u0437\u0438\u0442\u044C \u0442\u043E\u043B\u044C\u043A\u043E %{smart_count} \u0444\u0430\u0439\u043B\u043E\u0432"
+            },
+            youCanOnlyUploadFileTypes: "\u0412\u044B \u043C\u043E\u0436\u0435\u0442\u0435 \u0437\u0430\u0433\u0440\u0443\u0437\u0438\u0442\u044C \u0442\u043E\u043B\u044C\u043A\u043E: %{types}",
+            exceedsSize: "\u0424\u0430\u0439\u043B %{file} \u043F\u0440\u0435\u0432\u044B\u0448\u0430\u0435\u0442 \u043C\u0430\u043A\u0441\u0438\u043C\u0430\u043B\u044C\u043D\u043E \u0434\u043E\u043F\u0443\u0441\u0442\u0438\u043C\u044B\u0439 \u0440\u0430\u0437\u043C\u0435\u0440 %{size}",
+            noFilesFound: "\u0423 \u0432\u0430\u0441 \u043D\u0435\u0442 \u0444\u0430\u0439\u043B\u043E\u0432 \u0434\u043B\u044F \u0437\u0430\u0433\u0440\u0443\u0437\u043A\u0438",
+            noMoreFilesAllowed: "\u0411\u043E\u043B\u044C\u0448\u0435 \u0444\u0430\u0439\u043B\u043E\u0432 \u0437\u0430\u0433\u0440\u0443\u0437\u0438\u0442\u044C \u043D\u0435\u043B\u044C\u0437\u044F"
+          }
+        }
       }),
       busy: false,
       dragDepth: 0,
@@ -6287,6 +6308,9 @@ Uppy plugins must have unique \`id\` options.`;
           e2.preventDefault();
           e2.returnValue = "Are you sure you want to leave? Uploads in progress will be cancelled.";
         });
+        if (restrictions && restrictions.maxNumberOfFiles) {
+          this.internalState.maxFiles = restrictions.maxNumberOfFiles;
+        }
         this.initUppy();
       },
       pullState() {
