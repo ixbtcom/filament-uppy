@@ -388,7 +388,7 @@
       var debounce2 = require_debounce();
       var isObject = require_isObject();
       var FUNC_ERROR_TEXT = "Expected a function";
-      function throttle3(func, wait, options) {
+      function throttle2(func, wait, options) {
         var leading = true, trailing = true;
         if (typeof func != "function") {
           throw new TypeError(FUNC_ERROR_TEXT);
@@ -403,7 +403,7 @@
           "trailing": trailing
         });
       }
-      module.exports = throttle3;
+      module.exports = throttle2;
     }
   });
 
@@ -411,25 +411,23 @@
   var require_prettierBytes = __commonJS({
     "node_modules/@transloadit/prettier-bytes/dist/prettierBytes.js"(exports, module) {
       "use strict";
-      module.exports = function prettierBytes3(num) {
-        if (typeof num !== "number" || Number.isNaN(num)) {
-          throw new TypeError(`Expected a number, got ${typeof num}`);
+      module.exports = function prettierBytes3(input) {
+        if (typeof input !== "number" || Number.isNaN(input)) {
+          throw new TypeError(`Expected a number, got ${typeof input}`);
         }
-        const neg = num < 0;
-        const units = ["B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
+        const neg = input < 0;
+        let num = Math.abs(input);
         if (neg) {
           num = -num;
         }
-        if (num < 1) {
-          return `${(neg ? "-" : "") + num} B`;
+        if (num === 0) {
+          return "0 B";
         }
+        const units = ["B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
         const exponent = Math.min(Math.floor(Math.log(num) / Math.log(1024)), units.length - 1);
-        num = Number(num / 1024 ** exponent);
+        const value = Number(num / 1024 ** exponent);
         const unit = units[exponent];
-        if (num >= 10 || num % 1 === 0) {
-          return `${(neg ? "-" : "") + num.toFixed(0)} ${unit}`;
-        }
-        return `${(neg ? "-" : "") + num.toFixed(1)} ${unit}`;
+        return `${value >= 10 || value % 1 === 0 ? Math.round(value) : value.toFixed(1)} ${unit}`;
       };
     }
   });
@@ -679,8 +677,8 @@
         if (options && options.forever && !timeouts.length) {
           timeouts.push(this.createTimeout(i2, opts));
         }
-        timeouts.sort(function(a2, b2) {
-          return a2 - b2;
+        timeouts.sort(function(a2, b) {
+          return a2 - b;
         });
         return timeouts;
       };
@@ -867,7 +865,7 @@
   var urlAlphabet = "useandom-26T198340PX75pxJACKVERYMINDBUSHWOLF_GQZbfghjklqvwyzrict";
   var nanoid = (size = 21) => {
     let id11 = "";
-    let i2 = size;
+    let i2 = size | 0;
     while (i2--) {
       id11 += urlAlphabet[Math.random() * 64 | 0];
     }
@@ -887,7 +885,7 @@
     return "__private_" + id2++ + "_" + e2;
   }
   var packageJson = {
-    "version": "4.1.0"
+    "version": "4.2.0"
   };
   var _callbacks = /* @__PURE__ */ _classPrivateFieldLooseKey2("callbacks");
   var _publish = /* @__PURE__ */ _classPrivateFieldLooseKey2("publish");
@@ -1066,9 +1064,9 @@
       userAgent = navigator.userAgent;
     }
     if (!userAgent) return true;
-    const m = /Edge\/(\d+\.\d+)/.exec(userAgent);
-    if (!m) return true;
-    const edgeVersion = m[1];
+    const m2 = /Edge\/(\d+\.\d+)/.exec(userAgent);
+    if (!m2) return true;
+    const edgeVersion = m2[1];
     const version = edgeVersion.split(".", 2);
     const major = parseInt(version[0], 10);
     const minor = parseInt(version[1], 10);
@@ -1320,6 +1318,9 @@
       openFolderNamed: "Open folder %{name}",
       cancel: "Cancel",
       logOut: "Log out",
+      logIn: "Log in",
+      pickFiles: "Pick files",
+      pickPhotos: "Pick photos",
       filter: "Filter",
       resetFilter: "Reset filter",
       loading: "Loading...",
@@ -1339,7 +1340,8 @@
         1: "Added %{smart_count} files from %{folder}"
       },
       additionalRestrictionsFailed: "%{count} additional restrictions were not fulfilled",
-      unnamed: "Unnamed"
+      unnamed: "Unnamed",
+      pleaseWait: "Please wait"
     }
   };
 
@@ -1353,7 +1355,7 @@
     return "__private_" + id3++ + "_" + e2;
   }
   var packageJson2 = {
-    "version": "4.1.2"
+    "version": "4.4.3"
   };
   var defaultUploadState = {
     totalProgress: 0,
@@ -1375,6 +1377,10 @@
   var _transformFile = /* @__PURE__ */ _classPrivateFieldLooseKey3("transformFile");
   var _startIfAutoProceed = /* @__PURE__ */ _classPrivateFieldLooseKey3("startIfAutoProceed");
   var _checkAndUpdateFileState = /* @__PURE__ */ _classPrivateFieldLooseKey3("checkAndUpdateFileState");
+  var _handleUploadProgress = /* @__PURE__ */ _classPrivateFieldLooseKey3("handleUploadProgress");
+  var _updateTotalProgress = /* @__PURE__ */ _classPrivateFieldLooseKey3("updateTotalProgress");
+  var _updateTotalProgressThrottled = /* @__PURE__ */ _classPrivateFieldLooseKey3("updateTotalProgressThrottled");
+  var _calculateTotalProgress = /* @__PURE__ */ _classPrivateFieldLooseKey3("calculateTotalProgress");
   var _addListeners = /* @__PURE__ */ _classPrivateFieldLooseKey3("addListeners");
   var _updateOnlineStatus = /* @__PURE__ */ _classPrivateFieldLooseKey3("updateOnlineStatus");
   var _requestClientById = /* @__PURE__ */ _classPrivateFieldLooseKey3("requestClientById");
@@ -1401,6 +1407,12 @@
       });
       Object.defineProperty(this, _addListeners, {
         value: _addListeners2
+      });
+      Object.defineProperty(this, _calculateTotalProgress, {
+        value: _calculateTotalProgress2
+      });
+      Object.defineProperty(this, _updateTotalProgress, {
+        value: _updateTotalProgress2
       });
       Object.defineProperty(this, _checkAndUpdateFileState, {
         value: _checkAndUpdateFileState2
@@ -1453,29 +1465,48 @@
       });
       this.scheduledAutoProceed = null;
       this.wasOffline = false;
-      this.calculateProgress = (0, import_throttle.default)((file, data) => {
-        const fileInState = this.getFile(file == null ? void 0 : file.id);
-        if (file == null || !fileInState) {
-          this.log(`Not setting progress for a file that has been removed: ${file == null ? void 0 : file.id}`);
-          return;
-        }
-        if (fileInState.progress.percentage === 100) {
-          this.log(`Not setting progress for a file that has been already uploaded: ${file.id}`);
-          return;
-        }
-        const canHavePercentage = Number.isFinite(data.bytesTotal) && data.bytesTotal > 0;
-        this.setFileState(file.id, {
-          progress: {
-            ...fileInState.progress,
-            bytesUploaded: data.bytesUploaded,
-            bytesTotal: data.bytesTotal,
-            percentage: canHavePercentage ? Math.round(data.bytesUploaded / data.bytesTotal * 100) : 0
+      Object.defineProperty(this, _handleUploadProgress, {
+        writable: true,
+        value: (file, progress) => {
+          const fileInState = file ? this.getFile(file.id) : void 0;
+          if (file == null || !fileInState) {
+            this.log(`Not setting progress for a file that has been removed: ${file == null ? void 0 : file.id}`);
+            return;
           }
-        });
-        this.calculateTotalProgress();
-      }, 500, {
-        leading: true,
-        trailing: true
+          if (fileInState.progress.percentage === 100) {
+            this.log(`Not setting progress for a file that has been already uploaded: ${file.id}`);
+            return;
+          }
+          const newProgress = {
+            bytesTotal: progress.bytesTotal,
+            // bytesTotal may be null or zero; in that case we can't divide by it
+            percentage: progress.bytesTotal != null && Number.isFinite(progress.bytesTotal) && progress.bytesTotal > 0 ? Math.round(progress.bytesUploaded / progress.bytesTotal * 100) : void 0
+          };
+          if (fileInState.progress.uploadStarted != null) {
+            this.setFileState(file.id, {
+              progress: {
+                ...fileInState.progress,
+                ...newProgress,
+                bytesUploaded: progress.bytesUploaded
+              }
+            });
+          } else {
+            this.setFileState(file.id, {
+              progress: {
+                ...fileInState.progress,
+                ...newProgress
+              }
+            });
+          }
+          _classPrivateFieldLooseBase3(this, _updateTotalProgressThrottled)[_updateTotalProgressThrottled]();
+        }
+      });
+      Object.defineProperty(this, _updateTotalProgressThrottled, {
+        writable: true,
+        value: (0, import_throttle.default)(() => _classPrivateFieldLooseBase3(this, _updateTotalProgress)[_updateTotalProgress](), 500, {
+          leading: true,
+          trailing: true
+        })
       });
       Object.defineProperty(this, _updateOnlineStatus, {
         writable: true,
@@ -1655,7 +1686,12 @@
           progress: {
             ...files[fileID].progress,
             ...defaultProgress
-          }
+          },
+          // @ts-expect-error these typed are inserted
+          // into the namespace in their respective packages
+          // but core isn't ware of those
+          tus: void 0,
+          transloadit: void 0
         };
       });
       this.setState({
@@ -1723,7 +1759,7 @@
         ...this.getState().files
       };
       if (!updatedFiles[fileID]) {
-        this.log("Was trying to set metadata for a file that has been removed: ", fileID);
+        this.log(`Was trying to set metadata for a file that has been removed: ${fileID}`);
         return;
       }
       const newMeta = {
@@ -1821,6 +1857,17 @@
         isUploadInProgress: inProgressFiles.length > 0,
         isSomeGhost: files.some((file) => file.isGhost)
       };
+    }
+    validateRestrictions(file, files) {
+      if (files === void 0) {
+        files = this.getFiles();
+      }
+      try {
+        _classPrivateFieldLooseBase3(this, _restricter)[_restricter].validate(files, [file]);
+      } catch (err) {
+        return err;
+      }
+      return null;
     }
     validateSingleFile(file) {
       try {
@@ -1978,7 +2025,7 @@
         stateUpdate.recoveredState = null;
       }
       this.setState(stateUpdate);
-      this.calculateTotalProgress();
+      _classPrivateFieldLooseBase3(this, _updateTotalProgressThrottled)[_updateTotalProgressThrottled]();
       const removedFileIDs = Object.keys(removedFiles);
       removedFileIDs.forEach((fileID) => {
         this.emit("file-removed", removedFiles[fileID]);
@@ -2106,52 +2153,9 @@
         (_provider = plugin.provider) == null || _provider.logout == null || _provider.logout();
       });
     }
-    calculateTotalProgress() {
-      const files = this.getFiles();
-      const inProgress = files.filter((file) => {
-        return file.progress.uploadStarted || file.progress.preprocess || file.progress.postprocess;
-      });
-      if (inProgress.length === 0) {
-        this.emit("progress", 0);
-        this.setState({
-          totalProgress: 0
-        });
-        return;
-      }
-      const sizedFiles = inProgress.filter((file) => file.progress.bytesTotal != null);
-      const unsizedFiles = inProgress.filter((file) => file.progress.bytesTotal == null);
-      if (sizedFiles.length === 0) {
-        const progressMax = inProgress.length * 100;
-        const currentProgress = unsizedFiles.reduce((acc, file) => {
-          return acc + file.progress.percentage;
-        }, 0);
-        const totalProgress2 = Math.round(currentProgress / progressMax * 100);
-        this.setState({
-          totalProgress: totalProgress2
-        });
-        return;
-      }
-      let totalSize = sizedFiles.reduce((acc, file) => {
-        var _file$progress$bytesT;
-        return acc + ((_file$progress$bytesT = file.progress.bytesTotal) != null ? _file$progress$bytesT : 0);
-      }, 0);
-      const averageSize = totalSize / sizedFiles.length;
-      totalSize += averageSize * unsizedFiles.length;
-      let uploadedSize = 0;
-      sizedFiles.forEach((file) => {
-        uploadedSize += file.progress.bytesUploaded;
-      });
-      unsizedFiles.forEach((file) => {
-        uploadedSize += averageSize * (file.progress.percentage || 0) / 100;
-      });
-      let totalProgress = totalSize === 0 ? 0 : Math.round(uploadedSize / totalSize * 100);
-      if (totalProgress > 100) {
-        totalProgress = 100;
-      }
-      this.setState({
-        totalProgress
-      });
-      this.emit("progress", totalProgress);
+    // eslint-disable-next-line class-methods-use-this, @typescript-eslint/explicit-module-boundary-types
+    [Symbol.for("uppy test: updateTotalProgress")]() {
+      return _classPrivateFieldLooseBase3(this, _updateTotalProgress)[_updateTotalProgress]();
     }
     updateOnlineStatus() {
       var _window$navigator$onL;
@@ -2372,7 +2376,7 @@ Uppy plugins must have unique \`id\` options.`;
     /**
      * Start an upload for all the files that are not currently being uploaded.
      */
-    upload() {
+    async upload() {
       var _classPrivateFieldLoo;
       if (!((_classPrivateFieldLoo = _classPrivateFieldLooseBase3(this, _plugins)[_plugins]["uploader"]) != null && _classPrivateFieldLoo.length)) {
         this.log("No uploader type plugins are used", "warning");
@@ -2380,6 +2384,35 @@ Uppy plugins must have unique \`id\` options.`;
       let {
         files
       } = this.getState();
+      const filesToRetry = Object.keys(files).filter((fileID) => files[fileID].error);
+      const hasFilesToRetry = filesToRetry.length > 0;
+      if (hasFilesToRetry) {
+        const updatedFiles = {
+          ...files
+        };
+        filesToRetry.forEach((fileID) => {
+          updatedFiles[fileID] = {
+            ...updatedFiles[fileID],
+            isPaused: false,
+            error: null
+          };
+        });
+        this.setState({
+          files: updatedFiles,
+          error: null
+        });
+        this.emit("retry-all", Object.values(updatedFiles));
+        const uploadID = _classPrivateFieldLooseBase3(this, _createUpload)[_createUpload](filesToRetry, {
+          forceAllowNewUpload: true
+          // create new upload even if allowNewUpload: false
+        });
+        const result = await _classPrivateFieldLooseBase3(this, _runUpload)[_runUpload](uploadID);
+        const hasNewFiles = this.getFiles().filter((file) => file.progress.uploadStarted == null);
+        if (!hasNewFiles) {
+          return result;
+        }
+        files = this.getState().files;
+      }
       const onBeforeUploadResult = this.opts.onBeforeUpload(files);
       if (onBeforeUploadResult === false) {
         return Promise.reject(new Error("Not starting the upload because onBeforeUpload returned false"));
@@ -2602,6 +2635,44 @@ Uppy plugins must have unique \`id\` options.`;
       errors
     };
   }
+  function _updateTotalProgress2() {
+    var _totalProgressPercent, _totalProgressPercent2;
+    const totalProgress = _classPrivateFieldLooseBase3(this, _calculateTotalProgress)[_calculateTotalProgress]();
+    let totalProgressPercent = null;
+    if (totalProgress != null) {
+      totalProgressPercent = Math.round(totalProgress * 100);
+      if (totalProgressPercent > 100) totalProgressPercent = 100;
+      else if (totalProgressPercent < 0) totalProgressPercent = 0;
+    }
+    this.emit("progress", (_totalProgressPercent = totalProgressPercent) != null ? _totalProgressPercent : 0);
+    this.setState({
+      totalProgress: (_totalProgressPercent2 = totalProgressPercent) != null ? _totalProgressPercent2 : 0
+    });
+  }
+  function _calculateTotalProgress2() {
+    const files = this.getFiles();
+    const filesInProgress = files.filter((file) => {
+      return file.progress.uploadStarted || file.progress.preprocess || file.progress.postprocess;
+    });
+    if (filesInProgress.length === 0) {
+      return 0;
+    }
+    if (filesInProgress.every((file) => file.progress.uploadComplete)) {
+      return 1;
+    }
+    const isSizedFile = (file) => file.progress.bytesTotal != null && file.progress.bytesTotal !== 0;
+    const sizedFilesInProgress = filesInProgress.filter(isSizedFile);
+    const unsizedFilesInProgress = filesInProgress.filter((file) => !isSizedFile(file));
+    if (sizedFilesInProgress.every((file) => file.progress.uploadComplete) && unsizedFilesInProgress.length > 0 && !unsizedFilesInProgress.every((file) => file.progress.uploadComplete)) {
+      return null;
+    }
+    const totalFilesSize = sizedFilesInProgress.reduce((acc, file) => {
+      var _file$progress$bytesT;
+      return acc + ((_file$progress$bytesT = file.progress.bytesTotal) != null ? _file$progress$bytesT : 0);
+    }, 0);
+    const totalUploadedSize = sizedFilesInProgress.reduce((acc, file) => acc + (file.progress.bytesUploaded || 0), 0);
+    return totalFilesSize === 0 ? 0 : totalUploadedSize / totalFilesSize;
+  }
   function _addListeners2() {
     const errorHandler = (error, file, response) => {
       let errorMsg = error.message || "Unknown error";
@@ -2669,7 +2740,6 @@ Uppy plugins must have unique \`id\` options.`;
         progress: {
           uploadStarted: Date.now(),
           uploadComplete: false,
-          percentage: 0,
           bytesUploaded: 0,
           bytesTotal: file.size
         }
@@ -2677,7 +2747,7 @@ Uppy plugins must have unique \`id\` options.`;
       this.patchFilesState(filesState);
     };
     this.on("upload-start", onUploadStarted);
-    this.on("upload-progress", this.calculateProgress);
+    this.on("upload-progress", _classPrivateFieldLooseBase3(this, _handleUploadProgress)[_handleUploadProgress]);
     this.on("upload-success", (file, uploadResp) => {
       if (file == null || !this.getFile(file.id)) {
         this.log(`Not setting progress for a file that has been removed: ${file == null ? void 0 : file.id}`);
@@ -2703,7 +2773,7 @@ Uppy plugins must have unique \`id\` options.`;
           size: uploadResp.bytesUploaded || currentProgress.bytesTotal
         });
       }
-      this.calculateTotalProgress();
+      _classPrivateFieldLooseBase3(this, _updateTotalProgressThrottled)[_updateTotalProgressThrottled]();
     });
     this.on("preprocess-progress", (file, progress) => {
       if (file == null || !this.getFile(file.id)) {
@@ -2768,7 +2838,7 @@ Uppy plugins must have unique \`id\` options.`;
       });
     });
     this.on("restored", () => {
-      this.calculateTotalProgress();
+      _classPrivateFieldLooseBase3(this, _updateTotalProgressThrottled)[_updateTotalProgressThrottled]();
     });
     this.on("dashboard:file-edit-complete", (file) => {
       if (file) {
@@ -2893,258 +2963,261 @@ Uppy plugins must have unique \`id\` options.`;
   // node_modules/preact/dist/preact.module.js
   var n;
   var l;
-  var u;
   var t;
+  var u;
   var i;
-  var o;
   var r;
-  var f;
+  var o;
   var e;
+  var f;
   var c;
   var s;
   var a;
-  var h = {};
-  var p = [];
-  var v = /acit|ex(?:s|g|n|p|$)|rph|grid|ows|mnc|ntw|ine[ch]|zoo|^ord|itera/i;
-  var y = Array.isArray;
-  function d(n2, l2) {
-    for (var u2 in l2) n2[u2] = l2[u2];
+  var h;
+  var p = {};
+  var v = [];
+  var y = /acit|ex(?:s|g|n|p|$)|rph|grid|ows|mnc|ntw|ine[ch]|zoo|^ord|itera/i;
+  var d = Array.isArray;
+  function w(n2, l2) {
+    for (var t2 in l2) n2[t2] = l2[t2];
     return n2;
   }
-  function w(n2) {
-    var l2 = n2.parentNode;
-    l2 && l2.removeChild(n2);
+  function g(n2) {
+    n2 && n2.parentNode && n2.parentNode.removeChild(n2);
   }
-  function _(l2, u2, t2) {
-    var i2, o2, r2, f2 = {};
-    for (r2 in u2) "key" == r2 ? i2 = u2[r2] : "ref" == r2 ? o2 = u2[r2] : f2[r2] = u2[r2];
-    if (arguments.length > 2 && (f2.children = arguments.length > 3 ? n.call(arguments, 2) : t2), "function" == typeof l2 && null != l2.defaultProps) for (r2 in l2.defaultProps) void 0 === f2[r2] && (f2[r2] = l2.defaultProps[r2]);
-    return g(l2, f2, i2, o2, null);
+  function _(l2, t2, u2) {
+    var i2, r2, o2, e2 = {};
+    for (o2 in t2) "key" == o2 ? i2 = t2[o2] : "ref" == o2 ? r2 = t2[o2] : e2[o2] = t2[o2];
+    if (arguments.length > 2 && (e2.children = arguments.length > 3 ? n.call(arguments, 2) : u2), "function" == typeof l2 && null != l2.defaultProps) for (o2 in l2.defaultProps) void 0 === e2[o2] && (e2[o2] = l2.defaultProps[o2]);
+    return m(l2, e2, i2, r2, null);
   }
-  function g(n2, t2, i2, o2, r2) {
-    var f2 = { type: n2, props: t2, key: i2, ref: o2, __k: null, __: null, __b: 0, __e: null, __d: void 0, __c: null, constructor: void 0, __v: null == r2 ? ++u : r2, __i: -1, __u: 0 };
-    return null == r2 && null != l.vnode && l.vnode(f2), f2;
+  function m(n2, u2, i2, r2, o2) {
+    var e2 = { type: n2, props: u2, key: i2, ref: r2, __k: null, __: null, __b: 0, __e: null, __c: null, constructor: void 0, __v: null == o2 ? ++t : o2, __i: -1, __u: 0 };
+    return null == o2 && null != l.vnode && l.vnode(e2), e2;
   }
   function k(n2) {
     return n2.children;
   }
-  function b(n2, l2) {
+  function x(n2, l2) {
     this.props = n2, this.context = l2;
   }
-  function x(n2, l2) {
-    if (null == l2) return n2.__ ? x(n2.__, n2.__i + 1) : null;
-    for (var u2; l2 < n2.__k.length; l2++) if (null != (u2 = n2.__k[l2]) && null != u2.__e) return u2.__e;
-    return "function" == typeof n2.type ? x(n2) : null;
+  function S(n2, l2) {
+    if (null == l2) return n2.__ ? S(n2.__, n2.__i + 1) : null;
+    for (var t2; l2 < n2.__k.length; l2++) if (null != (t2 = n2.__k[l2]) && null != t2.__e) return t2.__e;
+    return "function" == typeof n2.type ? S(n2) : null;
   }
   function C(n2) {
-    var l2, u2;
+    var l2, t2;
     if (null != (n2 = n2.__) && null != n2.__c) {
-      for (n2.__e = n2.__c.base = null, l2 = 0; l2 < n2.__k.length; l2++) if (null != (u2 = n2.__k[l2]) && null != u2.__e) {
-        n2.__e = n2.__c.base = u2.__e;
+      for (n2.__e = n2.__c.base = null, l2 = 0; l2 < n2.__k.length; l2++) if (null != (t2 = n2.__k[l2]) && null != t2.__e) {
+        n2.__e = n2.__c.base = t2.__e;
         break;
       }
       return C(n2);
     }
   }
   function M(n2) {
-    (!n2.__d && (n2.__d = true) && i.push(n2) && !P.__r++ || o !== l.debounceRendering) && ((o = l.debounceRendering) || r)(P);
+    (!n2.__d && (n2.__d = true) && i.push(n2) && !$.__r++ || r !== l.debounceRendering) && ((r = l.debounceRendering) || o)($);
   }
-  function P() {
-    var n2, u2, t2, o2, r2, e2, c2, s2;
-    for (i.sort(f); n2 = i.shift(); ) n2.__d && (u2 = i.length, o2 = void 0, e2 = (r2 = (t2 = n2).__v).__e, c2 = [], s2 = [], t2.__P && ((o2 = d({}, r2)).__v = r2.__v + 1, l.vnode && l.vnode(o2), O(t2.__P, o2, r2, t2.__n, t2.__P.namespaceURI, 32 & r2.__u ? [e2] : null, c2, null == e2 ? x(r2) : e2, !!(32 & r2.__u), s2), o2.__v = r2.__v, o2.__.__k[o2.__i] = o2, j(c2, o2, s2), o2.__e != e2 && C(o2)), i.length > u2 && i.sort(f));
-    P.__r = 0;
+  function $() {
+    for (var n2, t2, u2, r2, o2, f2, c2, s2 = 1; i.length; ) i.length > s2 && i.sort(e), n2 = i.shift(), s2 = i.length, n2.__d && (u2 = void 0, o2 = (r2 = (t2 = n2).__v).__e, f2 = [], c2 = [], t2.__P && ((u2 = w({}, r2)).__v = r2.__v + 1, l.vnode && l.vnode(u2), O(t2.__P, u2, r2, t2.__n, t2.__P.namespaceURI, 32 & r2.__u ? [o2] : null, f2, null == o2 ? S(r2) : o2, !!(32 & r2.__u), c2), u2.__v = r2.__v, u2.__.__k[u2.__i] = u2, z(f2, u2, c2), u2.__e != o2 && C(u2)));
+    $.__r = 0;
   }
-  function S(n2, l2, u2, t2, i2, o2, r2, f2, e2, c2, s2) {
-    var a2, v2, y2, d2, w2, _2 = t2 && t2.__k || p, g2 = l2.length;
-    for (u2.__d = e2, $(u2, l2, _2), e2 = u2.__d, a2 = 0; a2 < g2; a2++) null != (y2 = u2.__k[a2]) && "boolean" != typeof y2 && "function" != typeof y2 && (v2 = -1 === y2.__i ? h : _2[y2.__i] || h, y2.__i = a2, O(n2, y2, v2, i2, o2, r2, f2, e2, c2, s2), d2 = y2.__e, y2.ref && v2.ref != y2.ref && (v2.ref && N(v2.ref, null, y2), s2.push(y2.ref, y2.__c || d2, y2)), null == w2 && null != d2 && (w2 = d2), 65536 & y2.__u || v2.__k === y2.__k ? e2 = I(y2, e2, n2) : "function" == typeof y2.type && void 0 !== y2.__d ? e2 = y2.__d : d2 && (e2 = d2.nextSibling), y2.__d = void 0, y2.__u &= -196609);
-    u2.__d = e2, u2.__e = w2;
+  function I(n2, l2, t2, u2, i2, r2, o2, e2, f2, c2, s2) {
+    var a2, h2, y2, d2, w2, g2, _2 = u2 && u2.__k || v, m2 = l2.length;
+    for (f2 = P(t2, l2, _2, f2, m2), a2 = 0; a2 < m2; a2++) null != (y2 = t2.__k[a2]) && (h2 = -1 === y2.__i ? p : _2[y2.__i] || p, y2.__i = a2, g2 = O(n2, y2, h2, i2, r2, o2, e2, f2, c2, s2), d2 = y2.__e, y2.ref && h2.ref != y2.ref && (h2.ref && q(h2.ref, null, y2), s2.push(y2.ref, y2.__c || d2, y2)), null == w2 && null != d2 && (w2 = d2), 4 & y2.__u || h2.__k === y2.__k ? f2 = A(y2, f2, n2) : "function" == typeof y2.type && void 0 !== g2 ? f2 = g2 : d2 && (f2 = d2.nextSibling), y2.__u &= -7);
+    return t2.__e = w2, f2;
   }
-  function $(n2, l2, u2) {
-    var t2, i2, o2, r2, f2, e2 = l2.length, c2 = u2.length, s2 = c2, a2 = 0;
-    for (n2.__k = [], t2 = 0; t2 < e2; t2++) r2 = t2 + a2, null != (i2 = n2.__k[t2] = null == (i2 = l2[t2]) || "boolean" == typeof i2 || "function" == typeof i2 ? null : "string" == typeof i2 || "number" == typeof i2 || "bigint" == typeof i2 || i2.constructor == String ? g(null, i2, null, null, null) : y(i2) ? g(k, { children: i2 }, null, null, null) : void 0 === i2.constructor && i2.__b > 0 ? g(i2.type, i2.props, i2.key, i2.ref ? i2.ref : null, i2.__v) : i2) ? (i2.__ = n2, i2.__b = n2.__b + 1, f2 = L(i2, u2, r2, s2), i2.__i = f2, o2 = null, -1 !== f2 && (s2--, (o2 = u2[f2]) && (o2.__u |= 131072)), null == o2 || null === o2.__v ? (-1 == f2 && a2--, "function" != typeof i2.type && (i2.__u |= 65536)) : f2 !== r2 && (f2 == r2 - 1 ? a2-- : f2 == r2 + 1 ? a2++ : f2 > r2 ? s2 > e2 - r2 ? a2 += f2 - r2 : a2-- : f2 < r2 && (f2 == r2 - a2 ? a2 -= f2 - r2 : a2++), f2 !== t2 + a2 && (i2.__u |= 65536))) : (o2 = u2[r2]) && null == o2.key && o2.__e && 0 == (131072 & o2.__u) && (o2.__e == n2.__d && (n2.__d = x(o2)), V(o2, o2, false), u2[r2] = null, s2--);
-    if (s2) for (t2 = 0; t2 < c2; t2++) null != (o2 = u2[t2]) && 0 == (131072 & o2.__u) && (o2.__e == n2.__d && (n2.__d = x(o2)), V(o2, o2));
+  function P(n2, l2, t2, u2, i2) {
+    var r2, o2, e2, f2, c2, s2 = t2.length, a2 = s2, h2 = 0;
+    for (n2.__k = new Array(i2), r2 = 0; r2 < i2; r2++) null != (o2 = l2[r2]) && "boolean" != typeof o2 && "function" != typeof o2 ? (f2 = r2 + h2, (o2 = n2.__k[r2] = "string" == typeof o2 || "number" == typeof o2 || "bigint" == typeof o2 || o2.constructor == String ? m(null, o2, null, null, null) : d(o2) ? m(k, { children: o2 }, null, null, null) : void 0 === o2.constructor && o2.__b > 0 ? m(o2.type, o2.props, o2.key, o2.ref ? o2.ref : null, o2.__v) : o2).__ = n2, o2.__b = n2.__b + 1, e2 = null, -1 !== (c2 = o2.__i = L(o2, t2, f2, a2)) && (a2--, (e2 = t2[c2]) && (e2.__u |= 2)), null == e2 || null === e2.__v ? (-1 == c2 && (i2 > s2 ? h2-- : i2 < s2 && h2++), "function" != typeof o2.type && (o2.__u |= 4)) : c2 != f2 && (c2 == f2 - 1 ? h2-- : c2 == f2 + 1 ? h2++ : (c2 > f2 ? h2-- : h2++, o2.__u |= 4))) : n2.__k[r2] = null;
+    if (a2) for (r2 = 0; r2 < s2; r2++) null != (e2 = t2[r2]) && 0 == (2 & e2.__u) && (e2.__e == u2 && (u2 = S(e2)), B(e2, e2));
+    return u2;
   }
-  function I(n2, l2, u2) {
-    var t2, i2;
+  function A(n2, l2, t2) {
+    var u2, i2;
     if ("function" == typeof n2.type) {
-      for (t2 = n2.__k, i2 = 0; t2 && i2 < t2.length; i2++) t2[i2] && (t2[i2].__ = n2, l2 = I(t2[i2], l2, u2));
+      for (u2 = n2.__k, i2 = 0; u2 && i2 < u2.length; i2++) u2[i2] && (u2[i2].__ = n2, l2 = A(u2[i2], l2, t2));
       return l2;
     }
-    n2.__e != l2 && (l2 && n2.type && !u2.contains(l2) && (l2 = x(n2)), u2.insertBefore(n2.__e, l2 || null), l2 = n2.__e);
+    n2.__e != l2 && (l2 && n2.type && !t2.contains(l2) && (l2 = S(n2)), t2.insertBefore(n2.__e, l2 || null), l2 = n2.__e);
     do {
       l2 = l2 && l2.nextSibling;
-    } while (null != l2 && 8 === l2.nodeType);
+    } while (null != l2 && 8 == l2.nodeType);
     return l2;
   }
-  function L(n2, l2, u2, t2) {
-    var i2 = n2.key, o2 = n2.type, r2 = u2 - 1, f2 = u2 + 1, e2 = l2[u2];
-    if (null === e2 || e2 && i2 == e2.key && o2 === e2.type && 0 == (131072 & e2.__u)) return u2;
-    if (t2 > (null != e2 && 0 == (131072 & e2.__u) ? 1 : 0)) for (; r2 >= 0 || f2 < l2.length; ) {
-      if (r2 >= 0) {
-        if ((e2 = l2[r2]) && 0 == (131072 & e2.__u) && i2 == e2.key && o2 === e2.type) return r2;
-        r2--;
+  function L(n2, l2, t2, u2) {
+    var i2, r2, o2 = n2.key, e2 = n2.type, f2 = l2[t2];
+    if (null === f2 && null == n2.key || f2 && o2 == f2.key && e2 === f2.type && 0 == (2 & f2.__u)) return t2;
+    if (u2 > (null != f2 && 0 == (2 & f2.__u) ? 1 : 0)) for (i2 = t2 - 1, r2 = t2 + 1; i2 >= 0 || r2 < l2.length; ) {
+      if (i2 >= 0) {
+        if ((f2 = l2[i2]) && 0 == (2 & f2.__u) && o2 == f2.key && e2 === f2.type) return i2;
+        i2--;
       }
-      if (f2 < l2.length) {
-        if ((e2 = l2[f2]) && 0 == (131072 & e2.__u) && i2 == e2.key && o2 === e2.type) return f2;
-        f2++;
+      if (r2 < l2.length) {
+        if ((f2 = l2[r2]) && 0 == (2 & f2.__u) && o2 == f2.key && e2 === f2.type) return r2;
+        r2++;
       }
     }
     return -1;
   }
-  function T(n2, l2, u2) {
-    "-" === l2[0] ? n2.setProperty(l2, null == u2 ? "" : u2) : n2[l2] = null == u2 ? "" : "number" != typeof u2 || v.test(l2) ? u2 : u2 + "px";
+  function T(n2, l2, t2) {
+    "-" == l2[0] ? n2.setProperty(l2, null == t2 ? "" : t2) : n2[l2] = null == t2 ? "" : "number" != typeof t2 || y.test(l2) ? t2 : t2 + "px";
   }
-  function A(n2, l2, u2, t2, i2) {
-    var o2;
-    n: if ("style" === l2) if ("string" == typeof u2) n2.style.cssText = u2;
+  function j(n2, l2, t2, u2, i2) {
+    var r2;
+    n: if ("style" == l2) if ("string" == typeof t2) n2.style.cssText = t2;
     else {
-      if ("string" == typeof t2 && (n2.style.cssText = t2 = ""), t2) for (l2 in t2) u2 && l2 in u2 || T(n2.style, l2, "");
-      if (u2) for (l2 in u2) t2 && u2[l2] === t2[l2] || T(n2.style, l2, u2[l2]);
+      if ("string" == typeof u2 && (n2.style.cssText = u2 = ""), u2) for (l2 in u2) t2 && l2 in t2 || T(n2.style, l2, "");
+      if (t2) for (l2 in t2) u2 && t2[l2] === u2[l2] || T(n2.style, l2, t2[l2]);
     }
-    else if ("o" === l2[0] && "n" === l2[1]) o2 = l2 !== (l2 = l2.replace(/(PointerCapture)$|Capture$/i, "$1")), l2 = l2.toLowerCase() in n2 || "onFocusOut" === l2 || "onFocusIn" === l2 ? l2.toLowerCase().slice(2) : l2.slice(2), n2.l || (n2.l = {}), n2.l[l2 + o2] = u2, u2 ? t2 ? u2.u = t2.u : (u2.u = e, n2.addEventListener(l2, o2 ? s : c, o2)) : n2.removeEventListener(l2, o2 ? s : c, o2);
+    else if ("o" == l2[0] && "n" == l2[1]) r2 = l2 != (l2 = l2.replace(f, "$1")), l2 = l2.toLowerCase() in n2 || "onFocusOut" == l2 || "onFocusIn" == l2 ? l2.toLowerCase().slice(2) : l2.slice(2), n2.l || (n2.l = {}), n2.l[l2 + r2] = t2, t2 ? u2 ? t2.t = u2.t : (t2.t = c, n2.addEventListener(l2, r2 ? a : s, r2)) : n2.removeEventListener(l2, r2 ? a : s, r2);
     else {
       if ("http://www.w3.org/2000/svg" == i2) l2 = l2.replace(/xlink(H|:h)/, "h").replace(/sName$/, "s");
       else if ("width" != l2 && "height" != l2 && "href" != l2 && "list" != l2 && "form" != l2 && "tabIndex" != l2 && "download" != l2 && "rowSpan" != l2 && "colSpan" != l2 && "role" != l2 && "popover" != l2 && l2 in n2) try {
-        n2[l2] = null == u2 ? "" : u2;
+        n2[l2] = null == t2 ? "" : t2;
         break n;
       } catch (n3) {
       }
-      "function" == typeof u2 || (null == u2 || false === u2 && "-" !== l2[4] ? n2.removeAttribute(l2) : n2.setAttribute(l2, "popover" == l2 && 1 == u2 ? "" : u2));
+      "function" == typeof t2 || (null == t2 || false === t2 && "-" != l2[4] ? n2.removeAttribute(l2) : n2.setAttribute(l2, "popover" == l2 && 1 == t2 ? "" : t2));
     }
   }
   function F(n2) {
-    return function(u2) {
+    return function(t2) {
       if (this.l) {
-        var t2 = this.l[u2.type + n2];
-        if (null == u2.t) u2.t = e++;
-        else if (u2.t < t2.u) return;
-        return t2(l.event ? l.event(u2) : u2);
+        var u2 = this.l[t2.type + n2];
+        if (null == t2.u) t2.u = c++;
+        else if (t2.u < u2.t) return;
+        return u2(l.event ? l.event(t2) : t2);
       }
     };
   }
-  function O(n2, u2, t2, i2, o2, r2, f2, e2, c2, s2) {
-    var a2, h2, p2, v2, w2, _2, g2, m, x2, C2, M2, P2, $2, I2, H, L2, T2 = u2.type;
-    if (void 0 !== u2.constructor) return null;
-    128 & t2.__u && (c2 = !!(32 & t2.__u), r2 = [e2 = u2.__e = t2.__e]), (a2 = l.__b) && a2(u2);
-    n: if ("function" == typeof T2) try {
-      if (m = u2.props, x2 = "prototype" in T2 && T2.prototype.render, C2 = (a2 = T2.contextType) && i2[a2.__c], M2 = a2 ? C2 ? C2.props.value : a2.__ : i2, t2.__c ? g2 = (h2 = u2.__c = t2.__c).__ = h2.__E : (x2 ? u2.__c = h2 = new T2(m, M2) : (u2.__c = h2 = new b(m, M2), h2.constructor = T2, h2.render = q), C2 && C2.sub(h2), h2.props = m, h2.state || (h2.state = {}), h2.context = M2, h2.__n = i2, p2 = h2.__d = true, h2.__h = [], h2._sb = []), x2 && null == h2.__s && (h2.__s = h2.state), x2 && null != T2.getDerivedStateFromProps && (h2.__s == h2.state && (h2.__s = d({}, h2.__s)), d(h2.__s, T2.getDerivedStateFromProps(m, h2.__s))), v2 = h2.props, w2 = h2.state, h2.__v = u2, p2) x2 && null == T2.getDerivedStateFromProps && null != h2.componentWillMount && h2.componentWillMount(), x2 && null != h2.componentDidMount && h2.__h.push(h2.componentDidMount);
+  function O(n2, t2, u2, i2, r2, o2, e2, f2, c2, s2) {
+    var a2, h2, p2, v2, y2, _2, m2, b, S2, C2, M2, $2, P2, A2, H, L2, T2, j2 = t2.type;
+    if (void 0 !== t2.constructor) return null;
+    128 & u2.__u && (c2 = !!(32 & u2.__u), o2 = [f2 = t2.__e = u2.__e]), (a2 = l.__b) && a2(t2);
+    n: if ("function" == typeof j2) try {
+      if (b = t2.props, S2 = "prototype" in j2 && j2.prototype.render, C2 = (a2 = j2.contextType) && i2[a2.__c], M2 = a2 ? C2 ? C2.props.value : a2.__ : i2, u2.__c ? m2 = (h2 = t2.__c = u2.__c).__ = h2.__E : (S2 ? t2.__c = h2 = new j2(b, M2) : (t2.__c = h2 = new x(b, M2), h2.constructor = j2, h2.render = D), C2 && C2.sub(h2), h2.props = b, h2.state || (h2.state = {}), h2.context = M2, h2.__n = i2, p2 = h2.__d = true, h2.__h = [], h2._sb = []), S2 && null == h2.__s && (h2.__s = h2.state), S2 && null != j2.getDerivedStateFromProps && (h2.__s == h2.state && (h2.__s = w({}, h2.__s)), w(h2.__s, j2.getDerivedStateFromProps(b, h2.__s))), v2 = h2.props, y2 = h2.state, h2.__v = t2, p2) S2 && null == j2.getDerivedStateFromProps && null != h2.componentWillMount && h2.componentWillMount(), S2 && null != h2.componentDidMount && h2.__h.push(h2.componentDidMount);
       else {
-        if (x2 && null == T2.getDerivedStateFromProps && m !== v2 && null != h2.componentWillReceiveProps && h2.componentWillReceiveProps(m, M2), !h2.__e && (null != h2.shouldComponentUpdate && false === h2.shouldComponentUpdate(m, h2.__s, M2) || u2.__v === t2.__v)) {
-          for (u2.__v !== t2.__v && (h2.props = m, h2.state = h2.__s, h2.__d = false), u2.__e = t2.__e, u2.__k = t2.__k, u2.__k.forEach(function(n3) {
-            n3 && (n3.__ = u2);
-          }), P2 = 0; P2 < h2._sb.length; P2++) h2.__h.push(h2._sb[P2]);
-          h2._sb = [], h2.__h.length && f2.push(h2);
+        if (S2 && null == j2.getDerivedStateFromProps && b !== v2 && null != h2.componentWillReceiveProps && h2.componentWillReceiveProps(b, M2), !h2.__e && (null != h2.shouldComponentUpdate && false === h2.shouldComponentUpdate(b, h2.__s, M2) || t2.__v == u2.__v)) {
+          for (t2.__v != u2.__v && (h2.props = b, h2.state = h2.__s, h2.__d = false), t2.__e = u2.__e, t2.__k = u2.__k, t2.__k.some(function(n3) {
+            n3 && (n3.__ = t2);
+          }), $2 = 0; $2 < h2._sb.length; $2++) h2.__h.push(h2._sb[$2]);
+          h2._sb = [], h2.__h.length && e2.push(h2);
           break n;
         }
-        null != h2.componentWillUpdate && h2.componentWillUpdate(m, h2.__s, M2), x2 && null != h2.componentDidUpdate && h2.__h.push(function() {
-          h2.componentDidUpdate(v2, w2, _2);
+        null != h2.componentWillUpdate && h2.componentWillUpdate(b, h2.__s, M2), S2 && null != h2.componentDidUpdate && h2.__h.push(function() {
+          h2.componentDidUpdate(v2, y2, _2);
         });
       }
-      if (h2.context = M2, h2.props = m, h2.__P = n2, h2.__e = false, $2 = l.__r, I2 = 0, x2) {
-        for (h2.state = h2.__s, h2.__d = false, $2 && $2(u2), a2 = h2.render(h2.props, h2.state, h2.context), H = 0; H < h2._sb.length; H++) h2.__h.push(h2._sb[H]);
+      if (h2.context = M2, h2.props = b, h2.__P = n2, h2.__e = false, P2 = l.__r, A2 = 0, S2) {
+        for (h2.state = h2.__s, h2.__d = false, P2 && P2(t2), a2 = h2.render(h2.props, h2.state, h2.context), H = 0; H < h2._sb.length; H++) h2.__h.push(h2._sb[H]);
         h2._sb = [];
       } else do {
-        h2.__d = false, $2 && $2(u2), a2 = h2.render(h2.props, h2.state, h2.context), h2.state = h2.__s;
-      } while (h2.__d && ++I2 < 25);
-      h2.state = h2.__s, null != h2.getChildContext && (i2 = d(d({}, i2), h2.getChildContext())), x2 && !p2 && null != h2.getSnapshotBeforeUpdate && (_2 = h2.getSnapshotBeforeUpdate(v2, w2)), S(n2, y(L2 = null != a2 && a2.type === k && null == a2.key ? a2.props.children : a2) ? L2 : [L2], u2, t2, i2, o2, r2, f2, e2, c2, s2), h2.base = u2.__e, u2.__u &= -161, h2.__h.length && f2.push(h2), g2 && (h2.__E = h2.__ = null);
+        h2.__d = false, P2 && P2(t2), a2 = h2.render(h2.props, h2.state, h2.context), h2.state = h2.__s;
+      } while (h2.__d && ++A2 < 25);
+      h2.state = h2.__s, null != h2.getChildContext && (i2 = w(w({}, i2), h2.getChildContext())), S2 && !p2 && null != h2.getSnapshotBeforeUpdate && (_2 = h2.getSnapshotBeforeUpdate(v2, y2)), L2 = a2, null != a2 && a2.type === k && null == a2.key && (L2 = N(a2.props.children)), f2 = I(n2, d(L2) ? L2 : [L2], t2, u2, i2, r2, o2, e2, f2, c2, s2), h2.base = t2.__e, t2.__u &= -161, h2.__h.length && e2.push(h2), m2 && (h2.__E = h2.__ = null);
     } catch (n3) {
-      if (u2.__v = null, c2 || null != r2) {
-        for (u2.__u |= c2 ? 160 : 32; e2 && 8 === e2.nodeType && e2.nextSibling; ) e2 = e2.nextSibling;
-        r2[r2.indexOf(e2)] = null, u2.__e = e2;
-      } else u2.__e = t2.__e, u2.__k = t2.__k;
-      l.__e(n3, u2, t2);
+      if (t2.__v = null, c2 || null != o2) if (n3.then) {
+        for (t2.__u |= c2 ? 160 : 128; f2 && 8 == f2.nodeType && f2.nextSibling; ) f2 = f2.nextSibling;
+        o2[o2.indexOf(f2)] = null, t2.__e = f2;
+      } else for (T2 = o2.length; T2--; ) g(o2[T2]);
+      else t2.__e = u2.__e, t2.__k = u2.__k;
+      l.__e(n3, t2, u2);
     }
-    else null == r2 && u2.__v === t2.__v ? (u2.__k = t2.__k, u2.__e = t2.__e) : u2.__e = z(t2.__e, u2, t2, i2, o2, r2, f2, c2, s2);
-    (a2 = l.diffed) && a2(u2);
+    else null == o2 && t2.__v == u2.__v ? (t2.__k = u2.__k, t2.__e = u2.__e) : f2 = t2.__e = V(u2.__e, t2, u2, i2, r2, o2, e2, c2, s2);
+    return (a2 = l.diffed) && a2(t2), 128 & t2.__u ? void 0 : f2;
   }
-  function j(n2, u2, t2) {
-    u2.__d = void 0;
-    for (var i2 = 0; i2 < t2.length; i2++) N(t2[i2], t2[++i2], t2[++i2]);
-    l.__c && l.__c(u2, n2), n2.some(function(u3) {
+  function z(n2, t2, u2) {
+    for (var i2 = 0; i2 < u2.length; i2++) q(u2[i2], u2[++i2], u2[++i2]);
+    l.__c && l.__c(t2, n2), n2.some(function(t3) {
       try {
-        n2 = u3.__h, u3.__h = [], n2.some(function(n3) {
-          n3.call(u3);
+        n2 = t3.__h, t3.__h = [], n2.some(function(n3) {
+          n3.call(t3);
         });
       } catch (n3) {
-        l.__e(n3, u3.__v);
+        l.__e(n3, t3.__v);
       }
     });
   }
-  function z(l2, u2, t2, i2, o2, r2, f2, e2, c2) {
-    var s2, a2, p2, v2, d2, _2, g2, m = t2.props, k2 = u2.props, b2 = u2.type;
-    if ("svg" === b2 ? o2 = "http://www.w3.org/2000/svg" : "math" === b2 ? o2 = "http://www.w3.org/1998/Math/MathML" : o2 || (o2 = "http://www.w3.org/1999/xhtml"), null != r2) {
-      for (s2 = 0; s2 < r2.length; s2++) if ((d2 = r2[s2]) && "setAttribute" in d2 == !!b2 && (b2 ? d2.localName === b2 : 3 === d2.nodeType)) {
-        l2 = d2, r2[s2] = null;
+  function N(n2) {
+    return "object" != typeof n2 || null == n2 ? n2 : d(n2) ? n2.map(N) : w({}, n2);
+  }
+  function V(t2, u2, i2, r2, o2, e2, f2, c2, s2) {
+    var a2, h2, v2, y2, w2, _2, m2, b = i2.props, k2 = u2.props, x2 = u2.type;
+    if ("svg" == x2 ? o2 = "http://www.w3.org/2000/svg" : "math" == x2 ? o2 = "http://www.w3.org/1998/Math/MathML" : o2 || (o2 = "http://www.w3.org/1999/xhtml"), null != e2) {
+      for (a2 = 0; a2 < e2.length; a2++) if ((w2 = e2[a2]) && "setAttribute" in w2 == !!x2 && (x2 ? w2.localName == x2 : 3 == w2.nodeType)) {
+        t2 = w2, e2[a2] = null;
         break;
       }
     }
-    if (null == l2) {
-      if (null === b2) return document.createTextNode(k2);
-      l2 = document.createElementNS(o2, b2, k2.is && k2), r2 = null, e2 = false;
+    if (null == t2) {
+      if (null == x2) return document.createTextNode(k2);
+      t2 = document.createElementNS(o2, x2, k2.is && k2), c2 && (l.__m && l.__m(u2, e2), c2 = false), e2 = null;
     }
-    if (null === b2) m === k2 || e2 && l2.data === k2 || (l2.data = k2);
+    if (null === x2) b === k2 || c2 && t2.data === k2 || (t2.data = k2);
     else {
-      if (r2 = r2 && n.call(l2.childNodes), m = t2.props || h, !e2 && null != r2) for (m = {}, s2 = 0; s2 < l2.attributes.length; s2++) m[(d2 = l2.attributes[s2]).name] = d2.value;
-      for (s2 in m) if (d2 = m[s2], "children" == s2) ;
-      else if ("dangerouslySetInnerHTML" == s2) p2 = d2;
-      else if ("key" !== s2 && !(s2 in k2)) {
-        if ("value" == s2 && "defaultValue" in k2 || "checked" == s2 && "defaultChecked" in k2) continue;
-        A(l2, s2, null, d2, o2);
+      if (e2 = e2 && n.call(t2.childNodes), b = i2.props || p, !c2 && null != e2) for (b = {}, a2 = 0; a2 < t2.attributes.length; a2++) b[(w2 = t2.attributes[a2]).name] = w2.value;
+      for (a2 in b) if (w2 = b[a2], "children" == a2) ;
+      else if ("dangerouslySetInnerHTML" == a2) v2 = w2;
+      else if (!(a2 in k2)) {
+        if ("value" == a2 && "defaultValue" in k2 || "checked" == a2 && "defaultChecked" in k2) continue;
+        j(t2, a2, null, w2, o2);
       }
-      for (s2 in k2) d2 = k2[s2], "children" == s2 ? v2 = d2 : "dangerouslySetInnerHTML" == s2 ? a2 = d2 : "value" == s2 ? _2 = d2 : "checked" == s2 ? g2 = d2 : "key" === s2 || e2 && "function" != typeof d2 || m[s2] === d2 || A(l2, s2, d2, m[s2], o2);
-      if (a2) e2 || p2 && (a2.__html === p2.__html || a2.__html === l2.innerHTML) || (l2.innerHTML = a2.__html), u2.__k = [];
-      else if (p2 && (l2.innerHTML = ""), S(l2, y(v2) ? v2 : [v2], u2, t2, i2, "foreignObject" === b2 ? "http://www.w3.org/1999/xhtml" : o2, r2, f2, r2 ? r2[0] : t2.__k && x(t2, 0), e2, c2), null != r2) for (s2 = r2.length; s2--; ) null != r2[s2] && w(r2[s2]);
-      e2 || (s2 = "value", void 0 !== _2 && (_2 !== l2[s2] || "progress" === b2 && !_2 || "option" === b2 && _2 !== m[s2]) && A(l2, s2, _2, m[s2], o2), s2 = "checked", void 0 !== g2 && g2 !== l2[s2] && A(l2, s2, g2, m[s2], o2));
+      for (a2 in k2) w2 = k2[a2], "children" == a2 ? y2 = w2 : "dangerouslySetInnerHTML" == a2 ? h2 = w2 : "value" == a2 ? _2 = w2 : "checked" == a2 ? m2 = w2 : c2 && "function" != typeof w2 || b[a2] === w2 || j(t2, a2, w2, b[a2], o2);
+      if (h2) c2 || v2 && (h2.__html === v2.__html || h2.__html === t2.innerHTML) || (t2.innerHTML = h2.__html), u2.__k = [];
+      else if (v2 && (t2.innerHTML = ""), I("template" === u2.type ? t2.content : t2, d(y2) ? y2 : [y2], u2, i2, r2, "foreignObject" == x2 ? "http://www.w3.org/1999/xhtml" : o2, e2, f2, e2 ? e2[0] : i2.__k && S(i2, 0), c2, s2), null != e2) for (a2 = e2.length; a2--; ) g(e2[a2]);
+      c2 || (a2 = "value", "progress" == x2 && null == _2 ? t2.removeAttribute("value") : void 0 !== _2 && (_2 !== t2[a2] || "progress" == x2 && !_2 || "option" == x2 && _2 !== b[a2]) && j(t2, a2, _2, b[a2], o2), a2 = "checked", void 0 !== m2 && m2 !== t2[a2] && j(t2, a2, m2, b[a2], o2));
     }
-    return l2;
+    return t2;
   }
-  function N(n2, u2, t2) {
+  function q(n2, t2, u2) {
     try {
       if ("function" == typeof n2) {
         var i2 = "function" == typeof n2.__u;
-        i2 && n2.__u(), i2 && null == u2 || (n2.__u = n2(u2));
-      } else n2.current = u2;
+        i2 && n2.__u(), i2 && null == t2 || (n2.__u = n2(t2));
+      } else n2.current = t2;
     } catch (n3) {
-      l.__e(n3, t2);
+      l.__e(n3, u2);
     }
   }
-  function V(n2, u2, t2) {
-    var i2, o2;
-    if (l.unmount && l.unmount(n2), (i2 = n2.ref) && (i2.current && i2.current !== n2.__e || N(i2, null, u2)), null != (i2 = n2.__c)) {
+  function B(n2, t2, u2) {
+    var i2, r2;
+    if (l.unmount && l.unmount(n2), (i2 = n2.ref) && (i2.current && i2.current !== n2.__e || q(i2, null, t2)), null != (i2 = n2.__c)) {
       if (i2.componentWillUnmount) try {
         i2.componentWillUnmount();
       } catch (n3) {
-        l.__e(n3, u2);
+        l.__e(n3, t2);
       }
       i2.base = i2.__P = null;
     }
-    if (i2 = n2.__k) for (o2 = 0; o2 < i2.length; o2++) i2[o2] && V(i2[o2], u2, t2 || "function" != typeof n2.type);
-    t2 || null == n2.__e || w(n2.__e), n2.__c = n2.__ = n2.__e = n2.__d = void 0;
+    if (i2 = n2.__k) for (r2 = 0; r2 < i2.length; r2++) i2[r2] && B(i2[r2], t2, u2 || "function" != typeof n2.type);
+    u2 || g(n2.__e), n2.__c = n2.__ = n2.__e = void 0;
   }
-  function q(n2, l2, u2) {
-    return this.constructor(n2, u2);
+  function D(n2, l2, t2) {
+    return this.constructor(n2, t2);
   }
-  function B(u2, t2, i2) {
-    var o2, r2, f2, e2;
-    l.__ && l.__(u2, t2), r2 = (o2 = "function" == typeof i2) ? null : i2 && i2.__k || t2.__k, f2 = [], e2 = [], O(t2, u2 = (!o2 && i2 || t2).__k = _(k, null, [u2]), r2 || h, h, t2.namespaceURI, !o2 && i2 ? [i2] : r2 ? null : t2.firstChild ? n.call(t2.childNodes) : null, f2, !o2 && i2 ? i2 : r2 ? r2.__e : t2.firstChild, o2, e2), j(f2, u2, e2);
+  function E(t2, u2, i2) {
+    var r2, o2, e2, f2;
+    u2 == document && (u2 = document.documentElement), l.__ && l.__(t2, u2), o2 = (r2 = "function" == typeof i2) ? null : i2 && i2.__k || u2.__k, e2 = [], f2 = [], O(u2, t2 = (!r2 && i2 || u2).__k = _(k, null, [t2]), o2 || p, p, u2.namespaceURI, !r2 && i2 ? [i2] : o2 ? null : u2.firstChild ? n.call(u2.childNodes) : null, e2, !r2 && i2 ? i2 : o2 ? o2.__e : u2.firstChild, r2, f2), z(e2, t2, f2);
   }
-  n = p.slice, l = { __e: function(n2, l2, u2, t2) {
-    for (var i2, o2, r2; l2 = l2.__; ) if ((i2 = l2.__c) && !i2.__) try {
-      if ((o2 = i2.constructor) && null != o2.getDerivedStateFromError && (i2.setState(o2.getDerivedStateFromError(n2)), r2 = i2.__d), null != i2.componentDidCatch && (i2.componentDidCatch(n2, t2 || {}), r2 = i2.__d), r2) return i2.__E = i2;
+  n = v.slice, l = { __e: function(n2, l2, t2, u2) {
+    for (var i2, r2, o2; l2 = l2.__; ) if ((i2 = l2.__c) && !i2.__) try {
+      if ((r2 = i2.constructor) && null != r2.getDerivedStateFromError && (i2.setState(r2.getDerivedStateFromError(n2)), o2 = i2.__d), null != i2.componentDidCatch && (i2.componentDidCatch(n2, u2 || {}), o2 = i2.__d), o2) return i2.__E = i2;
     } catch (l3) {
       n2 = l3;
     }
     throw n2;
-  } }, u = 0, t = function(n2) {
+  } }, t = 0, u = function(n2) {
     return null != n2 && null == n2.constructor;
-  }, b.prototype.setState = function(n2, l2) {
-    var u2;
-    u2 = null != this.__s && this.__s !== this.state ? this.__s : this.__s = d({}, this.state), "function" == typeof n2 && (n2 = n2(d({}, u2), this.props)), n2 && d(u2, n2), null != n2 && this.__v && (l2 && this._sb.push(l2), M(this));
-  }, b.prototype.forceUpdate = function(n2) {
+  }, x.prototype.setState = function(n2, l2) {
+    var t2;
+    t2 = null != this.__s && this.__s !== this.state ? this.__s : this.__s = w({}, this.state), "function" == typeof n2 && (n2 = n2(w({}, t2), this.props)), n2 && w(t2, n2), null != n2 && this.__v && (l2 && this._sb.push(l2), M(this));
+  }, x.prototype.forceUpdate = function(n2) {
     this.__v && (this.__e = true, n2 && this.__h.push(n2), M(this));
-  }, b.prototype.render = k, i = [], r = "function" == typeof Promise ? Promise.prototype.then.bind(Promise.resolve()) : setTimeout, f = function(n2, l2) {
+  }, x.prototype.render = k, i = [], o = "function" == typeof Promise ? Promise.prototype.then.bind(Promise.resolve()) : setTimeout, e = function(n2, l2) {
     return n2.__v.__b - l2.__v.__b;
-  }, P.__r = 0, e = 0, c = F(false), s = F(true), a = 0;
+  }, $.__r = 0, f = /(PointerCapture)$|Capture$/i, c = 0, s = F(false), a = F(true), h = 0;
 
   // node_modules/@uppy/utils/lib/isDOMElement.js
   function isDOMElement(obj) {
@@ -3311,14 +3384,14 @@ Uppy plugins must have unique \`id\` options.`;
         uppyRootElement.classList.add("uppy-Root");
         _classPrivateFieldLooseBase4(this, _updateUI)[_updateUI] = debounce((state) => {
           if (!this.uppy.getPlugin(this.id)) return;
-          B(this.render(state), uppyRootElement);
+          E(this.render(state, uppyRootElement), uppyRootElement);
           this.afterUpdate();
         });
         this.uppy.log(`Installing ${callerPluginName} to a DOM element '${target}'`);
         if (this.opts.replaceTargetContent) {
           targetElement.innerHTML = "";
         }
-        B(this.render(this.uppy.getState()), uppyRootElement);
+        E(this.render(this.uppy.getState(), uppyRootElement), uppyRootElement);
         this.el = uppyRootElement;
         targetElement.appendChild(uppyRootElement);
         uppyRootElement.dir = this.opts.direction || getTextDirection_default(uppyRootElement) || "ltr";
@@ -3348,8 +3421,7 @@ Uppy plugins must have unique \`id\` options.`;
      * so this.el and this.parent might not be available in `install`.
      * This is the case with @uppy/react plugins, for example.
      */
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    render(state) {
+    render(state, container) {
       throw new Error("Extend the render method to add your plugin to a DOM element");
     }
     update(state) {
@@ -3439,13 +3511,11 @@ Uppy plugins must have unique \`id\` options.`;
   };
   async function pRetry(input, options) {
     return new Promise((resolve, reject) => {
-      options = {
-        onFailedAttempt() {
-        },
-        retries: 10,
-        shouldRetry: () => true,
-        ...options
+      options = { ...options };
+      options.onFailedAttempt ??= () => {
       };
+      options.shouldRetry ??= () => true;
+      options.retries ??= 10;
       const operation = import_retry.default.operation(options);
       const abortHandler = () => {
         operation.stop();
@@ -3537,33 +3607,10 @@ Uppy plugins must have unique \`id\` options.`;
   };
   var ErrorWithCause_default = ErrorWithCause;
 
-  // node_modules/@uppy/utils/lib/emitSocketProgress.js
-  var import_throttle2 = __toESM(require_throttle(), 1);
-  function emitSocketProgress(uploader, progressData, file) {
-    const {
-      progress,
-      bytesUploaded,
-      bytesTotal
-    } = progressData;
-    if (progress) {
-      var _file$progress$upload;
-      uploader.uppy.log(`Upload progress: ${progress}`);
-      uploader.uppy.emit("upload-progress", file, {
-        uploadStarted: (_file$progress$upload = file.progress.uploadStarted) != null ? _file$progress$upload : 0,
-        bytesUploaded,
-        bytesTotal
-      });
-    }
-  }
-  var emitSocketProgress_default = (0, import_throttle2.default)(emitSocketProgress, 300, {
-    leading: true,
-    trailing: true
-  });
-
   // node_modules/@uppy/utils/lib/getSocketHost.js
   function getSocketHost(url) {
     var _regex$exec;
-    const regex = /^(?:https?:\/\/|\/\/)?(?:[^@\n]+@)?(?:www\.)?([^\n]+)/i;
+    const regex = /^(?:https?:\/\/|\/\/)?(?:[^@\n]+@)?([^\n]+)/i;
     const host = (_regex$exec = regex.exec(url)) == null ? void 0 : _regex$exec[1];
     const socketProtocol = /^http:\/\//i.test(url) ? "ws" : "wss";
     return `${socketProtocol}://${host}`;
@@ -3589,7 +3636,7 @@ Uppy plugins must have unique \`id\` options.`;
     return "__private_" + id5++ + "_" + e2;
   }
   var packageJson3 = {
-    "version": "4.0.1"
+    "version": "4.4.1"
   };
   function stripSlash(url) {
     return url.replace(/\/$/, "");
@@ -3633,6 +3680,22 @@ Uppy plugins must have unique \`id\` options.`;
       statusCode: res.status,
       message: errMsg
     });
+  }
+  function emitSocketProgress(uploader, progressData, file) {
+    const {
+      progress,
+      bytesUploaded,
+      bytesTotal
+    } = progressData;
+    if (progress) {
+      var _file$progress$upload;
+      uploader.uppy.log(`Upload progress: ${progress}`);
+      uploader.uppy.emit("upload-progress", file, {
+        uploadStarted: (_file$progress$upload = file.progress.uploadStarted) != null ? _file$progress$upload : 0,
+        bytesUploaded,
+        bytesTotal
+      });
+    }
   }
   var _companionHeaders = /* @__PURE__ */ _classPrivateFieldLooseKey5("companionHeaders");
   var _getUrl = /* @__PURE__ */ _classPrivateFieldLooseKey5("getUrl");
@@ -3924,7 +3987,7 @@ Uppy plugins must have unique \`id\` options.`;
                       } = JSON.parse(e2.data);
                       switch (action) {
                         case "progress": {
-                          emitSocketProgress_default(this, payload, this.uppy.getFile(file.id));
+                          emitSocketProgress(this, payload, this.uppy.getFile(file.id));
                           break;
                         }
                         case "success": {
@@ -3955,7 +4018,7 @@ Uppy plugins must have unique \`id\` options.`;
                     }
                   });
                   const closeSocket = () => {
-                    this.uppy.log(`Closing socket ${file.id}`, "info");
+                    this.uppy.log(`Closing socket ${file.id}`);
                     clearTimeout(activityTimeout);
                     if (socket) socket.close();
                     socket = void 0;
@@ -3970,7 +4033,7 @@ Uppy plugins must have unique \`id\` options.`;
                 signal: socketAbortController.signal,
                 onFailedAttempt: () => {
                   if (socketAbortController.signal.aborted) return;
-                  this.uppy.log(`Retrying websocket ${file.id}`, "info");
+                  this.uppy.log(`Retrying websocket ${file.id}`);
                 }
               });
             })().abortOn(socketAbortController.signal);
@@ -3990,14 +4053,14 @@ Uppy plugins must have unique \`id\` options.`;
           if (targetFile.id !== file.id) return;
           socketSend("cancel");
           (_socketAbortControlle3 = socketAbortController) == null || _socketAbortControlle3.abort == null || _socketAbortControlle3.abort();
-          this.uppy.log(`upload ${file.id} was removed`, "info");
+          this.uppy.log(`upload ${file.id} was removed`);
           resolve();
         };
         const onCancelAll = () => {
           var _socketAbortControlle4;
           socketSend("cancel");
           (_socketAbortControlle4 = socketAbortController) == null || _socketAbortControlle4.abort == null || _socketAbortControlle4.abort();
-          this.uppy.log(`upload ${file.id} was canceled`, "info");
+          this.uppy.log(`upload ${file.id} was canceled`);
           resolve();
         };
         const onFilePausedChange = (targetFile, newPausedState) => {
@@ -5087,6 +5150,7 @@ Uppy plugins must have unique \`id\` options.`;
         let signature;
         try {
           signature = await _classPrivateFieldLooseBase9(this, _fetchSignature)[_fetchSignature](_classPrivateFieldLooseBase9(this, _getFile)[_getFile](file), {
+            // Always defined for multipart uploads
             uploadId,
             key,
             partNumber,
@@ -5168,6 +5232,7 @@ Uppy plugins must have unique \`id\` options.`;
     return true;
   }
   async function _nonMultipartUpload2(file, chunk, signal) {
+    var _ref3;
     const {
       method = "POST",
       url,
@@ -5181,8 +5246,8 @@ Uppy plugins must have unique \`id\` options.`;
     if (method.toUpperCase() === "POST") {
       const formData = new FormData();
       Object.entries(fields).forEach((_ref2) => {
-        let [key, value] = _ref2;
-        return formData.set(key, value);
+        let [key2, value] = _ref2;
+        return formData.set(key2, value);
       });
       formData.set("file", data);
       body = formData;
@@ -5205,9 +5270,15 @@ Uppy plugins must have unique \`id\` options.`;
       onComplete,
       signal
     }).abortOn(signal);
-    return "location" in result ? result : {
-      location: removeMetadataFromURL(url),
-      ...result
+    const key = fields == null ? void 0 : fields.key;
+    _classPrivateFieldLooseBase9(this, _setS3MultipartState)[_setS3MultipartState](file, {
+      key
+    });
+    return {
+      ...result,
+      location: (_ref3 = result.location) != null ? _ref3 : removeMetadataFromURL(url),
+      bucket: fields == null ? void 0 : fields.bucket,
+      key
     };
   }
 
@@ -5221,7 +5292,7 @@ Uppy plugins must have unique \`id\` options.`;
     return "__private_" + id10++ + "_" + e2;
   }
   var packageJson4 = {
-    "version": "4.0.3"
+    "version": "4.2.3"
   };
   function assertServerError(res) {
     if (res != null && res.error) {
@@ -5259,11 +5330,7 @@ Uppy plugins must have unique \`id\` options.`;
     allowedMetaFields: true,
     limit: 6,
     getTemporarySecurityCredentials: false,
-    // eslint-disable-next-line no-bitwise
-    shouldUseMultipart: (file) => (
-      // eslint-disable-next-line no-bitwise
-      file.size >> 10 >> 10 > 100
-    ),
+    shouldUseMultipart: (file) => (file.size || 0) > 100 * 1024 * 1024,
     retryDelays: [0, 1e3, 3e3, 5e3]
   };
   var _companionCommunicationQueue = /* @__PURE__ */ _classPrivateFieldLooseKey10("companionCommunicationQueue");
@@ -5377,7 +5444,7 @@ Uppy plugins must have unique \`id\` options.`;
             }
             return _classPrivateFieldLooseBase10(this, _uploadLocalFile)[_uploadLocalFile](file);
           });
-          const upload = await Promise.all(promises);
+          const upload = await Promise.allSettled(promises);
           _classPrivateFieldLooseBase10(this, _setResumableUploadsCapability)[_setResumableUploadsCapability](true);
           return upload;
         }
@@ -5681,11 +5748,11 @@ Uppy plugins must have unique \`id\` options.`;
             etag,
             location: location2
           } = headersMap;
-          if (method.toUpperCase() === "POST" && location2 === null) {
-            console.warn("AwsS3/Multipart: Could not read the Location header. This likely means CORS is not configured correctly on the S3 Bucket. See https://uppy.io/docs/aws-s3-multipart#S3-Bucket-Configuration for instructions.");
+          if (method.toUpperCase() === "POST" && location2 == null) {
+            console.error("@uppy/aws-s3: Could not read the Location header. This likely means CORS is not configured correctly on the S3 Bucket. See https://uppy.io/docs/aws-s3/#setting-up-your-s3-bucket");
           }
-          if (etag === null) {
-            reject(new Error("AwsS3/Multipart: Could not read the ETag header. This likely means CORS is not configured correctly on the S3 Bucket. See https://uppy.io/docs/aws-s3-multipart#S3-Bucket-Configuration for instructions."));
+          if (etag == null) {
+            console.error("@uppy/aws-s3: Could not read the ETag header. This likely means CORS is not configured correctly on the S3 Bucket. See https://uppy.io/docs/aws-s3/#setting-up-your-s3-bucket");
             return;
           }
           onComplete == null || onComplete(etag);
@@ -5874,7 +5941,7 @@ Uppy plugins must have unique \`id\` options.`;
 
   // node_modules/@uppy/file-input/lib/FileInput.js
   var packageJson5 = {
-    "version": "4.0.1"
+    "version": "4.1.1"
   };
   var defaultOptions4 = {
     pretty: true,
@@ -5911,9 +5978,9 @@ Uppy plugins must have unique \`id\` options.`;
     }
     handleInputChange(event) {
       this.uppy.log("[FileInput] Something selected through input...");
-      const files = toArray_default(event.target.files);
+      const files = toArray_default(event.currentTarget.files || []);
       this.addFiles(files);
-      event.target.value = null;
+      event.currentTarget.value = "";
     }
     handleClick() {
       this.input.click();
@@ -6234,8 +6301,11 @@ Uppy plugins must have unique \`id\` options.`;
           endpoint: uploadEndpoint,
           getChunkSize: (file) => 100 * 1024 * 1024,
           // 100MB
-          shouldUseMultipart: (file) => file.size > 100 * 1024 * 1024
-          // 100MB
+          shouldUseMultipart: (file) => file.size > 100 * 1024 * 1024,
+          // 100MB,
+          companionHeaders: {
+            "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]')?.content || ""
+          }
         });
         this.uppy.use(FileInput, {
           target: this.$refs.fileInput,
