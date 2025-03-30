@@ -6301,11 +6301,8 @@ Uppy plugins must have unique \`id\` options.`;
           endpoint: uploadEndpoint,
           getChunkSize: (file) => 100 * 1024 * 1024,
           // 100MB
-          shouldUseMultipart: (file) => file.size > 100 * 1024 * 1024,
-          // 100MB,
-          companionHeaders: {
-            "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]')?.content || ""
-          }
+          shouldUseMultipart: (file) => file.size > 100 * 1024 * 1024
+          // 100MB
         });
         this.uppy.use(FileInput, {
           target: this.$refs.fileInput,

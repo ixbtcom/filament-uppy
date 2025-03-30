@@ -3,6 +3,7 @@
 namespace STS\FilamentUppy;
 
 use Closure;
+use Illuminate\Support\Facades\App;
 use Filament\Forms\Components\Field;
 use Filament\Forms\Components\Concerns;
 
@@ -22,6 +23,50 @@ class UppyUploader extends Field
     protected Closure|string $emptyIcon = 'heroicon-o-cloud-arrow-up';
 
     protected Closure|string $emptyMessage = 'Drop files here or click to upload.';
+    
+    protected Closure|bool $showDownloadLinks = false;
+    
+    protected Closure|bool $showOpenLinks = false;
+    
+    protected Closure|array $downloadLabels = [
+        'en' => 'Download',
+        'ru' => 'Скачать'
+    ];
+    
+    protected Closure|array $openLabels = [
+        'en' => 'Open',
+        'ru' => 'Открыть'
+    ];
+    
+    protected Closure|array $fileLabels = [
+        'en' => 'File',
+        'ru' => 'Файл'
+    ];
+    
+    protected Closure|array $sizeLabels = [
+        'en' => 'Size',
+        'ru' => 'Размер'
+    ];
+    
+    protected Closure|array $addFilesLabels = [
+        'en' => 'Add files',
+        'ru' => 'Добавить файлы'
+    ];
+    
+    protected Closure|array $removeLabels = [
+        'en' => 'Remove',
+        'ru' => 'Удалить'
+    ];
+    
+    protected Closure|array $cancelLabels = [
+        'en' => 'Cancel',
+        'ru' => 'Отмена'
+    ];
+    
+    protected Closure|array $errorLabels = [
+        'en' => 'Error',
+        'ru' => 'Ошибка'
+    ];
 
     protected string $view = 'filament-uppy::uppy-uploader';
 
@@ -132,5 +177,106 @@ class UppyUploader extends Field
     public function getRestrictions(): array
     {
         return $this->evaluate($this->restrictions);
+    }
+    
+    public function showDownloadLinks(bool|Closure $condition = true): static
+    {
+        $this->showDownloadLinks = $condition;
+        
+        return $this;
+    }
+    
+    public function showOpenLinks(bool|Closure $condition = true): static
+    {
+        $this->showOpenLinks = $condition;
+        
+        return $this;
+    }
+    
+    public function getShowDownloadLinks(): bool
+    {
+        return (bool) $this->evaluate($this->showDownloadLinks);
+    }
+    
+    public function getShowOpenLinks(): bool
+    {
+        return (bool) $this->evaluate($this->showOpenLinks);
+    }
+    
+    /**
+     * Получает текущую локаль из Laravel
+     * 
+     * @return string
+     */
+    protected function getLocale(): string
+    {
+        $locale = App::getLocale();
+        
+        // Проверяем, поддерживается ли локаль, если нет - возвращаем 'en'
+        return in_array($locale, ['en', 'ru']) ? $locale : 'en';
+    }
+    
+    public function getDownloadLabel(): string
+    {
+        $labels = $this->evaluate($this->downloadLabels);
+        $locale = $this->getLocale();
+        
+        return $labels[$locale] ?? $labels['en'];
+    }
+    
+    public function getOpenLabel(): string
+    {
+        $labels = $this->evaluate($this->openLabels);
+        $locale = $this->getLocale();
+        
+        return $labels[$locale] ?? $labels['en'];
+    }
+    
+    public function getFileLabel(): string
+    {
+        $labels = $this->evaluate($this->fileLabels);
+        $locale = $this->getLocale();
+        
+        return $labels[$locale] ?? $labels['en'];
+    }
+    
+    public function getSizeLabel(): string
+    {
+        $labels = $this->evaluate($this->sizeLabels);
+        $locale = $this->getLocale();
+        
+        return $labels[$locale] ?? $labels['en'];
+    }
+    
+    public function getAddFilesLabel(): string
+    {
+        $labels = $this->evaluate($this->addFilesLabels);
+        $locale = $this->getLocale();
+        
+        return $labels[$locale] ?? $labels['en'];
+    }
+    
+    public function getRemoveLabel(): string
+    {
+        $labels = $this->evaluate($this->removeLabels);
+        $locale = $this->getLocale();
+        
+        return $labels[$locale] ?? $labels['en'];
+    }
+    
+    public function getCancelLabel(): string
+    {
+        $labels = $this->evaluate($this->cancelLabels);
+        $locale = $this->getLocale();
+        
+        return $labels[$locale] ?? $labels['en'];
+    }
+    
+    public function getErrorLabel(): string
+    {
+        $labels = $this->evaluate($this->errorLabels);
+        $locale = $this->getLocale();
+        
+        return $labels[$locale] ?? $labels['en'];
     }
 }

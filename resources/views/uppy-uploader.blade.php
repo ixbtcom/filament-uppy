@@ -44,14 +44,14 @@
                             scope="col"
                             class="w-1/2 px-3 py-2 text-start text-sm font-medium text-gray-700 dark:text-gray-200"
                         >
-                            File
+                            {{ $getFileLabel() }}
                         </th>
 
                         <th
                             scope="col"
                             class="w-1/12 px-3 py-2 text-start text-sm font-medium text-gray-700 dark:text-gray-200"
                         >
-                            Size
+                            {{ $getSizeLabel() }}
                         </th>
 
                         <th
@@ -84,7 +84,7 @@
                                 <span
                                     x-show="file.error"
                                     class="text-red-500"
-                                >Error</span>
+                                >{{ $getErrorLabel() }}</span>
                             </td>
 
                             <td class="px-3 py-2 text-sm text-gray-700 dark:text-gray-200">
@@ -111,11 +111,29 @@
                             </td>
 
                             <td class="px-3 py-2 text-sm text-gray-700 dark:text-gray-200">
-                                <span
-                                    class="font-semibold hover:underline cursor-pointer text-sm text-gray-700 dark:text-gray-200"
-                                    x-on:click="removeFile(file.id)"
-                                    x-text="file.completed ? 'Remove' : 'Cancel'"
-                                ></span>
+                                <div class="flex space-x-2">
+                                    <template x-if="file.completed && file.url && {{ $getShowDownloadLinks() ? 'true' : 'false' }}">
+                                        <a
+                                            class="font-semibold hover:underline cursor-pointer text-sm text-gray-700 dark:text-gray-200"
+                                            x-bind:href="file.url"
+                                            download
+                                        >{{ $getDownloadLabel() }}</a>
+                                    </template>
+
+                                    <template x-if="file.completed && file.url && {{ $getShowOpenLinks() ? 'true' : 'false' }}">
+                                        <a
+                                            class="font-semibold hover:underline cursor-pointer text-sm text-gray-700 dark:text-gray-200"
+                                            x-bind:href="file.url"
+                                            target="_blank"
+                                        >{{ $getOpenLabel() }}</a>
+                                    </template>
+
+                                    <span
+                                        class="font-semibold hover:underline cursor-pointer text-sm text-gray-700 dark:text-gray-200"
+                                        x-on:click="removeFile(file.id)"
+                                        x-text="file.completed ? '{{ $getRemoveLabel() }}' : '{{ $getCancelLabel() }}'"
+                                    ></span>
+                                </div>
                             </td>
                         </tr>
                     </template>
@@ -155,7 +173,7 @@
                     wire:loading.attr="disabled"
                 >
                     <span class="font-semibold group-hover/link:underline group-focus-visible/link:underline text-sm text-gray-700 dark:text-gray-200">
-                        Add files
+                        {{ $getAddFilesLabel() }}
                     </span>
                 </button>
             </div>
